@@ -34,6 +34,8 @@ def calculate_fertile_window(last_period_first_day : datetime, cycle_length : in
         "end" : (ovulation + timedelta(days=1))
     }
 
+def as_date(d):
+    return d.date() if isinstance(d, datetime) else d
 
 def calculate_date(start_date:date, end_date:date) -> bool:
     today_date = date.today()

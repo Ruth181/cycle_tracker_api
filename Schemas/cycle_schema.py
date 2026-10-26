@@ -61,3 +61,10 @@ class CyclePhaseResponse(BaseModel):
     is_fertile : bool
     message : str | None = None
 
+
+class EstimatedCycleResponse(BaseModel):
+    cycle_number : int
+    period : PhaseWindow
+    ovulation_date : date
+    fertile_window : PhaseWindow
+    next_period_preview : date

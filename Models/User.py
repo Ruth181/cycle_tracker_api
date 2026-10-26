@@ -1,7 +1,7 @@
 import uuid
 
 from database import Base
-from sqlalchemy import Column, String,Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String,Integer, DateTime
 from datetime import datetime, timezone
 import uuid
 from sqlalchemy.orm import relationship
@@ -18,4 +18,5 @@ class User(Base):
     role = Column(String, nullable=False, default="User")
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     cycle = relationship("Cycle", back_populates="user")
+    period_logs = relationship("PeriodLog", back_populates="user")
 

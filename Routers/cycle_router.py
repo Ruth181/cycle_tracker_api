@@ -4,8 +4,19 @@ from sqlalchemy.orm import Session
 from Dependencies.auth_dependency import get_current_user
 from database import get_db_session
 from Models.User import User
-from Services.cycle_services import create_cycle, update_cycle, get_cycle, get_cycle_stats, get_user_cycle_phase
-from Schemas.cycle_schema import CycleResponse, CreateCycle, UpdateCycle, CycleStatResponse,CyclePhaseResponse
+from Services.cycle_services import (create_cycle,
+                                     update_cycle,
+                                     get_cycle,
+                                     get_cycle_stats,
+                                     get_user_cycle_phase,
+                                     predict_six_upcoming_cycles
+                                     )
+from Schemas.cycle_schema import (CycleResponse,
+                                  CreateCycle,
+                                  UpdateCycle,
+                                  CycleStatResponse,
+                                  CyclePhaseResponse,
+                                  EstimatedCycleResponse)
 
 cycle_router = APIRouter(
     prefix="/cycle",
@@ -31,4 +42,9 @@ def _get_cycle_stats(user:User=Depends(get_current_user), db:Session=Depends(get
 @cycle_router.get("/cycle-phase", response_model=CyclePhaseResponse, status_code=200)
 def _get_cycle_phase(user:User = Depends(get_current_user), db:Session = Depends(get_db_session)):
     return  get_user_cycle_phase(user_id=user.id, db=db)
+
+@cycle_router.get("/predict/6-months", response_model=list[EstimatedCycleResponse], status_code=200)
+def predict_6_months(user :User = Depends(get_current_user), db:Session = Depends(get_db_session)):
+    return predict_six_upcoming_cycles(user_id=user.id, db=db)
+
 

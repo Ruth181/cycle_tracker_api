@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
-from Schemas.cycle_schema import CycleResponse
+from Models.User import User
 from Schemas.user_schema import UserResponseSchema, CreateUser, UpdateUser
 from database import get_db_session
 from Dependencies.auth_dependency import get_current_user
@@ -30,4 +29,4 @@ def _get_me(user:User = Depends(get_current_user)):
 
 @user_router.delete("/me", status_code=204)
 def _delete_user(user:User = Depends(get_current_user), db:Session=Depends(get_db_session)):
-    return delete_user(user=user,db=db)
+    return delete_user(user_id=user.id,db=db)
