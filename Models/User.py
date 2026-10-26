@@ -19,4 +19,5 @@ class User(Base):
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     cycle = relationship("Cycle", back_populates="user")
     period_logs = relationship("PeriodLog", back_populates="user")
+    document_logs = relationship("DocumentationLog", back_populates="user")
 
