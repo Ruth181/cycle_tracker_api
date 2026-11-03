@@ -25,3 +25,7 @@ class AuthLogin(BaseModel):
 class AuthResponse(BaseModel):
     access_token : str
     token_type:str
+
+
+class ReqGoogleLoginIn(BaseModel):
+    id_token : str

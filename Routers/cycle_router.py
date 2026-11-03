@@ -27,9 +27,9 @@ cycle_router = APIRouter(
 def _create_cycle(cycle:CreateCycle, user : User = Depends(get_current_user), db:Session = Depends(get_db_session)):
     return create_cycle(user_id=user.id, cycle=cycle, db=db)
 
-@cycle_router.patch("/{cycle_id}", status_code=200, response_model=CycleResponse)
-def _update_cycle(cycle_id:str, payload:UpdateCycle, user : User = Depends(get_current_user), db:Session = Depends(get_db_session)):
-    return update_cycle(user_id=user.id, cycle_id=cycle_id, updated_cycle=payload, db=db)
+@cycle_router.patch("", status_code=200, response_model=CycleResponse)
+def _update_cycle(payload:UpdateCycle, user : User = Depends(get_current_user), db:Session = Depends(get_db_session)):
+    return update_cycle(user_id=user.id, updated_cycle=payload, db=db)
 
 @cycle_router.get("/my-cycle", response_model=CycleResponse, status_code=200)
 def _get_user_cycle(user:User=Depends(get_current_user), db:Session=Depends(get_db_session)):

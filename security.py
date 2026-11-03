@@ -1,7 +1,13 @@
+from typing import Any
+
 import bcrypt
+from fastapi import HTTPException
+
 from config import settings
 from datetime import datetime, timezone, timedelta
 from jose import JWTError, jwt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 
 JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 30
 
@@ -37,8 +43,18 @@ def decode_access_token(access_token:str):
 
     return decoded_user
 
+def verify_google_token(token:Any):
+    try:
+        # Checks signature, expiry, issuer, and that aud == your client ID
+        return google_id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            settings.google_client_id,
+            clock_skew_in_seconds=10
+        )
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid Google Token")
 
 if __name__ == "__main__":
     from datetime import datetime
     print(datetime.strptime("29/10/2026", "%d/%m/%Y"))
-    #print(decode_access_token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxYjQyZjYxOS05NDIzLTQzNTYtODIzYS0zYzBhODFlNDQzNzMiLCJleHAiOjE3OTI1MDMyODF9.Pw4kEG_HN6AWgfso1YXbvnPtNChv3orsiMgDIMWae_s"))

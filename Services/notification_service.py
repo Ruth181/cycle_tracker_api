@@ -46,10 +46,10 @@ def get_notification(user_id:int, db:Session):
                     "message" : "Your Period is today."
                 }
 
-            return {
-                "notify": False,
-                "message" : ""
-            }
+        return {
+            "notify": False,
+            "message" : f"Your next period is in {next_period} days."
+        }
 
     except HTTPException:
         raise

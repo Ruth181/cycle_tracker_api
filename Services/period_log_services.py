@@ -34,7 +34,7 @@ def get_cycle_status(db:Session, user_id:str):
                 "next_period": next_period,
                 "days_late": days_late,
                 "message" : f"Your period was expected on {next_period}. Did it start? Yes/No",
-                "Phase" : Phases.LUTEAL
+                "phase" : Phases.LUTEAL
             }
         else:
             return {

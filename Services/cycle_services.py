@@ -34,23 +34,22 @@ def create_cycle(user_id: str, cycle:CreateCycle, db:Session):
 
 
 #update cycle
-def update_cycle(user_id : str, cycle_id:str, updated_cycle : UpdateCycle, db:Session):
+def update_cycle(user_id : str, updated_cycle : UpdateCycle, db:Session):
     try:
         existing_cycle = db.query(Cycle).filter(
-            Cycle.user_id == user_id,
-            Cycle.id == cycle_id
+            Cycle.user_id == user_id
         ).first()
 
         if existing_cycle is None:
             raise HTTPException(status_code=404, detail="Cycle Not Found")
 
-        if (existing_cycle.first_day_last_period is not None) and existing_cycle.first_day_last_period != updated_cycle.first_day_last_period:
+        if (updated_cycle.first_day_last_period is not None) and existing_cycle.first_day_last_period != updated_cycle.first_day_last_period:
             existing_cycle.first_day_last_period = updated_cycle.first_day_last_period
 
-        if (existing_cycle.period_duration is not None) and existing_cycle.period_duration != updated_cycle.period_duration:
+        if (updated_cycle.period_duration is not None) and existing_cycle.period_duration != updated_cycle.period_duration:
             existing_cycle.period_duration = updated_cycle.period_duration
 
-        if (existing_cycle.cycle_length is not None) and existing_cycle.cycle_length != updated_cycle.cycle_length:
+        if (updated_cycle.cycle_length is not None) and existing_cycle.cycle_length != updated_cycle.cycle_length:
             existing_cycle.cycle_length = updated_cycle.cycle_length
 
         db.commit()

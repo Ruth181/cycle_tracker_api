@@ -84,7 +84,7 @@ def get_user(user : User):
 #delete_account
 def delete_user(user_id:str, db:Session):
     try:
-       user_exists = db.query(User).filter(User.id == user_id)
+       user_exists = db.query(User).filter(User.id == user_id).first()
 
        if user_exists is None:
            raise HTTPException(status_code=404, detail="User not found")
@@ -99,9 +99,6 @@ def delete_user(user_id:str, db:Session):
         db.rollback()
         print(f"Reason: {e}")
         raise HTTPException(status_code=500, detail="Server Error")
-
-    finally:
-        db.close()
 
 #calculate upcoming periods for 4 months
 #google sign up
