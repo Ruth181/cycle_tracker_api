@@ -4,7 +4,7 @@ from Models.User import User
 from Dependencies.auth_dependency import get_current_user
 from Schemas.documentation_log_schema import ReqDocumentationLog,ResponseDocumentationLog
 from database import get_db_session
-from Services.documentation_log_services import get_history,get_log_by_id,add_new_log
+from Services.documentation_log_services import get_history,get_log_by_id,add_new_log, get_recurring_patterns
 
 documentation_router = APIRouter(
     prefix="/doc_logs",
@@ -14,6 +14,10 @@ documentation_router = APIRouter(
 @documentation_router.get("", response_model=list[ResponseDocumentationLog],status_code=200)
 def get_all_logs_by_user(user:User = Depends(get_current_user), db:Session=Depends(get_db_session)):
     return get_history(db=db, user_id=user.id)
+
+@documentation_router.get("/recurring_symptoms", status_code=200)
+def get_recurring_symptoms(user : User = Depends(get_current_user), db:Session=Depends(get_db_session)):
+    return get_recurring_patterns(user_id=user.id, db=db)
 
 @documentation_router.get("/{log_id}", response_model=ResponseDocumentationLog, status_code=200)
 def get_one_log(log_id:str, user:User = Depends(get_current_user), db:Session=Depends(get_db_session)):

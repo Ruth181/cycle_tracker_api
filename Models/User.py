@@ -21,4 +21,5 @@ class User(Base):
     cycle = relationship("Cycle", back_populates="user")
     period_logs = relationship("PeriodLog", back_populates="user")
     document_logs = relationship("DocumentationLog", back_populates="user")
+    cycle_history = relationship("CycleHistory", back_populates="user")
 
