@@ -5,7 +5,6 @@ from fastapi import HTTPException
 from security import verify_password, create_access_token, verify_google_token
 from sqlalchemy.exc import IntegrityError
 from Schemas.auth_schema import AuthResponse
-from security import create_access_token
 
 def login_service(details:AuthLogin, db:Session):
     try:

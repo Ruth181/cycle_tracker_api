@@ -12,6 +12,7 @@ class Phases(str, Enum):
 
 class CreateCycle(BaseModel):
     first_day_last_period : datetime = Field(description="First day of last period")
+    estimated_end_date : datetime = Field(description="Estimated end date", default=None)
     period_duration : int = Field(ge=1, description="Period Duration")
     cycle_length : int = Field(description="Cycle Length", gt=10)
 
@@ -19,6 +20,13 @@ class CreateCycle(BaseModel):
     @classmethod
     def normalize_first_day_last_period_date(cls, v):
         if isinstance(v,str):
+            return datetime.strptime(v, "%d/%m/%Y")
+        return v
+
+    @field_validator('estimated_end_date', mode="before")
+    @classmethod
+    def normalize_end_day_last_period(cls, v):
+        if isinstance(v, str):
             return datetime.strptime(v, "%d/%m/%Y")
         return v
 

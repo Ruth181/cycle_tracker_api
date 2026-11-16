@@ -8,6 +8,7 @@ class Cycle(Base):
 
     id = Column(String, primary_key=True, default=lambda : str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    #user_id = Column(String, ForeignKey("users.id"), ondelete="SET NULL")
     first_day_last_period = Column(DateTime, nullable=False)
     cycle_length = Column(Integer, nullable=False)
     period_duration = Column(Integer, nullable=False)
