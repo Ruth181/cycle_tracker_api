@@ -1,4 +1,9 @@
+from datetime import datetime
+
 from Models.Documentation_Log import DocumentationLog
+from Schemas.cycle_schema import Phases
+from Models.CycleHistory import CycleHistory
+
 
 def test_create_documentation_log_success(client, db_session_fixture):
     payload = {
@@ -23,27 +28,181 @@ def test_create_documentation_log_success(client, db_session_fixture):
     assert isinstance(login_response.json()["access_token"], str)
     assert login_response.json()["token_type"] == "bearer"
 
+    log_payload = {
+        "came": True
+    }
+
+    log_payload_response = client.post("/period_log", json=log_payload, headers={
+        "Authorization": f"Bearer {login_response.json()['access_token']}"
+    })
+    assert log_payload_response.status_code == 201
+    assert isinstance(log_payload_response.json()["id"], str)
+
+    cycle_payload = {
+        "first_day_last_period": "23/10/2026",
+        "period_duration": 3,
+        "cycle_length": 26
+    }
+    cycle_response = client.post(
+        "/cycle", json=cycle_payload, headers={
+            "Authorization": f"Bearer {login_response.json()['access_token']}"
+        })
+
+    assert cycle_response.status_code == 201
+
+    new_cycle = CycleHistory(
+        user_id=create_response.json()["id"],
+        start_date=datetime.strptime("10/10/2026","%d/%m/%Y"),
+        period_log_id=log_payload_response.json()["id"]
+    )
+    db = db_session_fixture()
+    db.add(new_cycle)
+    db.commit()
+    db.refresh(new_cycle)
+
+    assert new_cycle is not None
+    assert new_cycle.id is not None
+    assert isinstance(new_cycle.id, str)
+
     doc_payload = {
         "is_period" : False,
+        "phase" : Phases.LUTEAL,
+        "moods" : [
+            "down",
+            "annoyed"
+        ],
+        "symptoms" : [
+            "Lightheaded",
+            "Headaches",
+            "low energy"
+        ],
+        "cycle_history_id" : new_cycle.id,
+    }
+    doc_response = client.post("/doc_logs", json=doc_payload,
+                               headers={"Authorization": f"Bearer {login_response.json()['access_token']}"})
+    assert doc_response.status_code == 201
+    assert isinstance(doc_response.json()["id"], str)
+    assert doc_response.json()["symptoms"] == doc_payload["symptoms"]
+    assert isinstance(doc_response.json()["is_period"], bool)
+
+def test_create_documentation_not_found(client, db_session_fixture):
+    payload = {
+        "full_name": "Jane Doe",
+        "age": 20,
+        "gender": "Female",
+        "email": "janeDoe@example.com",
+        "password": "JaneDoe@18"
+    }
+
+    create_response = client.post("/user", json=payload)
+    assert create_response.status_code == 201
+    assert isinstance(create_response.json()["id"], str)
+
+    login_payload = {
+        "email": str(payload["email"]).lower(),
+        "password": payload["password"]
+    }
+
+    login_response = client.post("/auth/login", json=login_payload)
+    assert login_response.status_code == 200
+    assert isinstance(login_response.json()["access_token"], str)
+    assert login_response.json()["token_type"] == "bearer"
+
+    log_payload = {
+        "came": True
+    }
+
+    log_payload_response = client.post("/period_log", json=log_payload, headers={
+        "Authorization": f"Bearer {login_response.json()['access_token']}"
+    })
+    assert log_payload_response.status_code == 201
+    assert isinstance(log_payload_response.json()["id"], str)
+
+    new_cycle = CycleHistory(
+        user_id=create_response.json()["id"],
+        start_date=datetime.strptime("10/10/2026","%d/%m/%Y"),
+        period_log_id=log_payload_response.json()["id"]
+    )
+    db = db_session_fixture()
+    db.add(new_cycle)
+    db.commit()
+    db.refresh(new_cycle)
+
+    assert new_cycle is not None
+    assert new_cycle.id is not None
+    assert isinstance(new_cycle.id, str)
+
+    doc_payload = {
+        "is_period" : False,
+        "phase" : Phases.LUTEAL,
+        "moods" : [
+            "down",
+            "annoyed"
+        ],
+        "symptoms" : [
+            "Lightheaded",
+            "Headaches",
+            "low energy"
+        ],
+        "cycle_history_id" : new_cycle.id,
+    }
+    doc_response = client.post("/doc_logs", json=doc_payload,
+                               headers={"Authorization": f"Bearer {login_response.json()['access_token']}"})
+    assert doc_response.status_code == 404
+
+
+
+def test_create_documentation_not_authenticated(client, db_session_fixture):
+    payload = {
+        "full_name": "Jane Doe",
+        "age": 20,
+        "gender": "Female",
+        "email": "janeDoe@example.com",
+        "password": "JaneDoe@18"
+    }
+
+    create_response = client.post("/user", json=payload)
+    assert create_response.status_code == 201
+    assert isinstance(create_response.json()["id"], str)
+
+    login_payload = {
+        "email": str(payload["email"]).lower(),
+        "password": payload["password"]
+    }
+
+    login_response = client.post("/auth/login", json=login_payload)
+    assert login_response.status_code == 200
+    assert isinstance(login_response.json()["access_token"], str)
+    assert login_response.json()["token_type"] == "bearer"
+
+    log_payload = {
+        "came": True
+    }
+
+    log_payload_response = client.post("/period_log", json=log_payload, headers={
+        "Authorization": f"Bearer {login_response.json()['access_token']}"
+    })
+    assert log_payload_response.status_code == 201
+    assert isinstance(log_payload_response.json()["id"], str)
+
+    doc_payload = {
+        "is_period" : False,
+        "phase" : Phases.LUTEAL,
+        "moods" : [
+            "down",
+            "annoyed"
+        ],
         "symptoms" : [
             "Lightheaded",
             "Headaches",
             "low energy"
         ]
     }
-    doc_response = client.post("/doc_logs", json=doc_payload,
-                               headers={"Authorization": f"Bearer {login_response.json()['access_token']}"})
-    assert doc_response.status_code == 201
+    doc_response = client.post("/doc_logs", json=doc_payload)
+    assert doc_response.status_code == 401
+    assert doc_response.json()["detail"] == "Not authenticated"
 
-    db = db_session_fixture()
-    doc_log = db.query(DocumentationLog).filter(DocumentationLog.id == doc_response.json()["id"]).first()
-    assert doc_log.symptoms == doc_payload["symptoms"]
-    assert doc_log.is_period == doc_payload["is_period"]
-    assert doc_log.user_id == create_response.json()["id"]
 
-    assert isinstance(doc_response.json()["id"], str)
-    assert doc_response.json()["symptoms"] == doc_payload["symptoms"]
-    assert isinstance(doc_response.json()["is_period"], bool)
 
 
 def test_get_log_by_id(client, db_session_fixture):
@@ -69,13 +228,55 @@ def test_get_log_by_id(client, db_session_fixture):
     assert isinstance(login_response.json()["access_token"], str)
     assert login_response.json()["token_type"] == "bearer"
 
+    log_payload = {
+        "came": True
+    }
+
+    log_payload_response = client.post("/period_log", json=log_payload, headers={
+        "Authorization": f"Bearer {login_response.json()['access_token']}"
+    })
+    assert log_payload_response.status_code == 201
+    assert isinstance(log_payload_response.json()["id"], str)
+
+    cycle_payload = {
+        "first_day_last_period": "23/10/2026",
+        "period_duration": 3,
+        "cycle_length": 26
+    }
+    cycle_response = client.post(
+        "/cycle", json=cycle_payload, headers={
+            "Authorization": f"Bearer {login_response.json()['access_token']}"
+        })
+
+    assert cycle_response.status_code == 201
+
+    new_cycle = CycleHistory(
+        user_id=create_response.json()["id"],
+        start_date=datetime.strptime("10/10/2026", "%d/%m/%Y"),
+        period_log_id=log_payload_response.json()["id"]
+    )
+    db = db_session_fixture()
+    db.add(new_cycle)
+    db.commit()
+    db.refresh(new_cycle)
+
+    assert new_cycle is not None
+    assert new_cycle.id is not None
+    assert isinstance(new_cycle.id, str)
+
     doc_payload = {
         "is_period": False,
+        "phase": Phases.LUTEAL,
+        "moods": [
+            "down",
+            "annoyed"
+        ],
         "symptoms": [
             "Lightheaded",
             "Headaches",
             "low energy"
-        ]
+        ],
+        "cycle_history_id": new_cycle.id,
     }
     doc_response = client.post("/doc_logs", json=doc_payload,
                                headers={"Authorization": f"Bearer {login_response.json()['access_token']}"})
@@ -132,7 +333,7 @@ def test_get_log_by_id_not_found(client, db_session_fixture):
     assert get_log.json()["detail"] == "Log not found"
 
 
-def test_history_success(client):
+def test_history_success(client, db_session_fixture):
     payload = {
         "full_name": "Jane Doe",
         "age": 20,
@@ -155,13 +356,55 @@ def test_history_success(client):
     assert isinstance(login_response.json()["access_token"], str)
     assert login_response.json()["token_type"] == "bearer"
 
+    log_payload = {
+        "came": True
+    }
+
+    log_payload_response = client.post("/period_log", json=log_payload, headers={
+        "Authorization": f"Bearer {login_response.json()['access_token']}"
+    })
+    assert log_payload_response.status_code == 201
+    assert isinstance(log_payload_response.json()["id"], str)
+
+    cycle_payload = {
+        "first_day_last_period": "23/10/2026",
+        "period_duration": 3,
+        "cycle_length": 26
+    }
+    cycle_response = client.post(
+        "/cycle", json=cycle_payload, headers={
+            "Authorization": f"Bearer {login_response.json()['access_token']}"
+        })
+
+    assert cycle_response.status_code == 201
+
+    new_cycle = CycleHistory(
+        user_id=create_response.json()["id"],
+        start_date=datetime.strptime("10/10/2026", "%d/%m/%Y"),
+        period_log_id=log_payload_response.json()["id"]
+    )
+    db = db_session_fixture()
+    db.add(new_cycle)
+    db.commit()
+    db.refresh(new_cycle)
+
+    assert new_cycle is not None
+    assert new_cycle.id is not None
+    assert isinstance(new_cycle.id, str)
+
     doc_payload = {
         "is_period": False,
+        "phase": Phases.LUTEAL,
+        "moods": [
+            "down",
+            "annoyed"
+        ],
         "symptoms": [
             "Lightheaded",
             "Headaches",
             "low energy"
-        ]
+        ],
+        "cycle_history_id": new_cycle.id,
     }
     doc_response = client.post("/doc_logs", json=doc_payload,
                                headers={"Authorization": f"Bearer {login_response.json()['access_token']}"})
